@@ -491,24 +491,55 @@ function drawWelcomeMat(x, y) {
 function drawLeftWall(x, y, height = 45) {
     const pt = isoToScreen(x, y);
     
+    // Solid wall polygon
     ctx.beginPath();
     ctx.moveTo(pt.x - TILE_W / 2, pt.y + TILE_H / 2);
     ctx.lineTo(pt.x - TILE_W / 2, pt.y + TILE_H / 2 - height);
     ctx.lineTo(pt.x, pt.y - height);
     ctx.lineTo(pt.x, pt.y);
     ctx.closePath();
-    
     ctx.fillStyle = '#3b4252';
     ctx.fill();
     ctx.strokeStyle = '#4c566a';
     ctx.stroke();
     
-    // Draw brick lines
+    // Baseboard trim at bottom of wall
     ctx.beginPath();
-    ctx.moveTo(pt.x - TILE_W / 2, pt.y + TILE_H / 2 - height/2);
-    ctx.lineTo(pt.x, pt.y - height/2);
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.moveTo(pt.x - TILE_W / 2, pt.y + TILE_H / 2);
+    ctx.lineTo(pt.x - TILE_W / 2, pt.y + TILE_H / 2 - 5);
+    ctx.lineTo(pt.x, pt.y - 5);
+    ctx.lineTo(pt.x, pt.y);
+    ctx.closePath();
+    ctx.fillStyle = '#2e3440';
+    ctx.fill();
+    ctx.strokeStyle = '#3b4252';
     ctx.stroke();
+    
+    // Top wall trim
+    ctx.beginPath();
+    ctx.moveTo(pt.x - TILE_W / 2, pt.y + TILE_H / 2 - height);
+    ctx.lineTo(pt.x - TILE_W / 2, pt.y + TILE_H / 2 - height + 4);
+    ctx.lineTo(pt.x, pt.y - height + 4);
+    ctx.lineTo(pt.x, pt.y - height);
+    ctx.closePath();
+    ctx.fillStyle = '#4c566a';
+    ctx.fill();
+
+    // Window Cutout for middle wall segments
+    if (y === 4 || y === 5) {
+        // Inner window blue pane
+        ctx.fillStyle = '#8fbcbb';
+        ctx.fillRect(pt.x - TILE_W/4 - 2, pt.y + 10 - height + 10, TILE_W/2, height - 20);
+        // Glass frame border
+        ctx.strokeStyle = '#e5e9f0';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(pt.x - TILE_W/4 - 2, pt.y + 10 - height + 10, TILE_W/2, height - 20);
+        // Vertical divider pane line
+        ctx.beginPath();
+        ctx.moveTo(pt.x - 2, pt.y + 10 - height + 10);
+        ctx.lineTo(pt.x - 2, pt.y + 10 - height + 10 + height - 20);
+        ctx.stroke();
+    }
 }
 
 // Draw right wall segment
@@ -527,12 +558,27 @@ function drawRightWall(x, y, height = 45) {
     ctx.strokeStyle = '#4c566a';
     ctx.stroke();
     
-    // Draw brick lines
+    // Baseboard trim
     ctx.beginPath();
-    ctx.moveTo(pt.x, pt.y - height/2);
-    ctx.lineTo(pt.x + TILE_W / 2, pt.y + TILE_H / 2 - height/2);
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.moveTo(pt.x, pt.y);
+    ctx.lineTo(pt.x, pt.y - 5);
+    ctx.lineTo(pt.x + TILE_W / 2, pt.y + TILE_H / 2 - 5);
+    ctx.lineTo(pt.x + TILE_W / 2, pt.y + TILE_H / 2);
+    ctx.closePath();
+    ctx.fillStyle = '#2e3440';
+    ctx.fill();
+    ctx.strokeStyle = '#434c5e';
     ctx.stroke();
+    
+    // Top trim
+    ctx.beginPath();
+    ctx.moveTo(pt.x, pt.y - height);
+    ctx.lineTo(pt.x, pt.y - height + 4);
+    ctx.lineTo(pt.x + TILE_W / 2, pt.y + TILE_H / 2 - height + 4);
+    ctx.lineTo(pt.x + TILE_W / 2, pt.y + TILE_H / 2 - height);
+    ctx.closePath();
+    ctx.fillStyle = '#4c566a';
+    ctx.fill();
 }
 
 // Draw a 3D isometric box
@@ -816,15 +862,76 @@ function drawDeliveryTruck() {
     ctx.restore();
 }
 
+// Draw the 3D floating foundation slab under the grid
+function drawFloorSlab() {
+    const ptLeft = isoToScreen(0, GRID_SIZE - 1);
+    const cLeftX = ptLeft.x - TILE_W / 2;
+    const cLeftY = ptLeft.y + TILE_H / 2;
+    
+    const ptRight = isoToScreen(GRID_SIZE - 1, 0);
+    const cRightX = ptRight.x + TILE_W / 2;
+    const cRightY = ptRight.y + TILE_H / 2;
+    
+    const ptBottom = isoToScreen(GRID_SIZE - 1, GRID_SIZE - 1);
+    const cBottomX = ptBottom.x;
+    const cBottomY = ptBottom.y + TILE_H;
+    
+    const thickness = 28; // Beautiful thick floor slab
+    
+    // Left Slab Face (shaded)
+    ctx.beginPath();
+    ctx.moveTo(cLeftX, cLeftY);
+    ctx.lineTo(cBottomX, cBottomY);
+    ctx.lineTo(cBottomX, cBottomY + thickness);
+    ctx.lineTo(cLeftX, cLeftY + thickness);
+    ctx.closePath();
+    ctx.fillStyle = '#2e3440'; // Nord dark slate
+    ctx.fill();
+    ctx.strokeStyle = '#1e222b';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    
+    // Right Slab Face (darker shadow)
+    ctx.beginPath();
+    ctx.moveTo(cBottomX, cBottomY);
+    ctx.lineTo(cRightX, cRightY);
+    ctx.lineTo(cRightX, cRightY + thickness);
+    ctx.lineTo(cBottomX, cBottomY + thickness);
+    ctx.closePath();
+    ctx.fillStyle = '#242933'; // Extra dark
+    ctx.fill();
+    ctx.strokeStyle = '#1e222b';
+    ctx.stroke();
+    
+    // Highlight top corner ridge
+    ctx.strokeStyle = '#4c566a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cLeftX, cLeftY);
+    ctx.lineTo(cBottomX, cBottomY);
+    ctx.lineTo(cRightX, cRightY);
+    ctx.stroke();
+}
+
 // --- ENGINE CORE GAME LOOP (60 FPS Rendering) ---
 function updateAndRender() {
-    // Clear canvas
+    // 1. Draw premium sky backdrop gradient
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#2e3440'); // Slate blue sky
+    grad.addColorStop(0.4, '#242933'); // Darker slate
+    grad.addColorStop(1, '#1e222b'); // Night background
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Save state and apply camera matrices
     ctx.save();
     ctx.translate(canvas.width / 2 + camera.x, canvas.height / 2 - 170 + camera.y);
     ctx.scale(camera.zoom, camera.zoom);
+    
+    // Draw 3D floor slab foundation before tiles
+    drawFloorSlab();
     
     // Draw floor grid and objects
     // Loop y+x from 0 to 26 (since 13+13 = 26 is the max sum for a 14x14 grid)
@@ -842,6 +949,19 @@ function updateAndRender() {
                 }
                 
                 drawTile(x, y, tileColor);
+                
+                // Overlay glowing warm morning sunlight beam from window casting across floor
+                if ((y === 4 || y === 5) && (x >= 1 && x <= 6)) {
+                    ctx.fillStyle = 'rgba(235, 203, 139, 0.12)'; // Nord gold translucency
+                    const pt = isoToScreen(x, y);
+                    ctx.beginPath();
+                    ctx.moveTo(pt.x, pt.y);
+                    ctx.lineTo(pt.x + TILE_W / 2, pt.y + TILE_H / 2);
+                    ctx.lineTo(pt.x, pt.y + TILE_H);
+                    ctx.lineTo(pt.x - TILE_W / 2, pt.y + TILE_H / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
                 
                 // Draw welcome mat at the door
                 if (x === MAP_BLOCKS.door.x && y === MAP_BLOCKS.door.y) {
